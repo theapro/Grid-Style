@@ -1,0 +1,200 @@
+import React, { useEffect, useRef } from "react";
+import { FileUser, MessageSquareShare } from "lucide-react";
+
+// Palette
+const ACCENT = "#0fd6a0";
+const BLACK = "#000";
+const WHITE = "#fff";
+
+// Utility: calculate line length for grid animation
+function getLineLength(x1, y1, x2, y2, w, h) {
+  const x1p = (x1 / 100) * w;
+  const y1p = (y1 / 100) * h;
+  const x2p = (x2 / 100) * w;
+  const y2p = (y2 / 100) * h;
+  return Math.sqrt((x2p - x1p) ** 2 + (y2p - y1p) ** 2);
+}
+
+// Animated SVG grid background (unchanged)
+const AnimatedGrid = ({ rows = 4, cols = 4 }) => {
+  const svgRef = useRef(null);
+  const [dimensions, setDimensions] = React.useState({ w: 0, h: 0 });
+
+  useEffect(() => {
+    function updateDims() {
+      const svg = svgRef.current;
+      if (svg) {
+        setDimensions({
+          w: svg.clientWidth,
+          h: svg.clientHeight,
+        });
+      }
+    }
+    updateDims();
+    window.addEventListener("resize", updateDims);
+    return () => window.removeEventListener("resize", updateDims);
+  }, []);
+
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const lines = Array.from(svg.querySelectorAll("line"));
+    lines.forEach((line, i) => {
+      line.style.strokeDasharray = line.getAttribute("data-length");
+      line.style.strokeDashoffset = line.getAttribute("data-length");
+      line.style.transition = "stroke-dashoffset 0.7s cubic-bezier(.7,0,.3,1)";
+      setTimeout(() => {
+        line.style.strokeDashoffset = 0;
+      }, 150 + i * 80);
+    });
+  }, [dimensions]);
+
+  const { w, h } = dimensions;
+  const colWidth = 100 / cols;
+  const rowHeight = 100 / rows;
+  const lines = [];
+  // Vertical
+  for (let c = 1; c < cols; c++) {
+    const x = colWidth * c;
+    const length = getLineLength(x, 0, x, 100, w || 1, h || 1);
+    lines.push(
+      <line
+        key={`v-${c}`}
+        x1={`${x}%`}
+        y1="0%"
+        x2={`${x}%`}
+        y2="100%"
+        stroke={BLACK}
+        strokeWidth="0.2"
+        data-length={length}
+      />
+    );
+  }
+  // Horizontal
+  for (let r = 1; r < rows; r++) {
+    const y = rowHeight * r;
+    const length = getLineLength(0, y, 100, y, w || 1, h || 1);
+    lines.push(
+      <line
+        key={`h-${r}`}
+        x1="0%"
+        y1={`${y}%`}
+        x2="100%"
+        y2={`${y}%`}
+        stroke={BLACK}
+        strokeWidth="0.2"
+        data-length={length}
+      />
+    );
+  }
+  return (
+    <svg
+      ref={svgRef}
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        zIndex: -1,
+        display: "block",
+      }}
+    >
+      {lines}
+    </svg>
+  );
+};
+
+// Animation delays for grid
+const animationDelays = [
+  "0s", "0.1s", "0.2s", "0.3s",
+  "0.4s", "0.5s", "0.6s", "0.7s",
+  "0.8s", "0.9s", "1.0s", "1.1s",
+  "1.2s", "1.3s", "1.4s", "1.5s",
+];
+
+// Fresh About Page Content
+const AboutPage = () => (
+  <main className="relative min-h-screen w-full  text-black overflow-hidden">
+    <AnimatedGrid rows={4} cols={4} />
+
+    <section className="absolute inset-0 grid grid-cols-4 grid-rows-4 w-full h-full">
+      {/* 1. Intro Name/Title */}
+      <div className="col-span-2 row-span-2 flex flex-col justify-end pl-10 pb-8 animate-fade-in" style={{ animationDelay: animationDelays[1] }}>
+        <h1 className="text-5xl md:text-7xl font-extrabold font-sans leading-none mb-2" style={{ color: BLACK }}>
+          <span>
+            Apro<span style={{ color: ACCENT }}>*</span>
+          </span>
+        </h1>
+        <h2 className="text-xl md:text-2xl font-light tracking-wider uppercase" style={{ color: ACCENT }}>
+          Creative Developer & UI/UX Enthusiast
+        </h2>
+      </div>
+
+      {/* 2. About / short bio */}
+      <div className="col-start-3 row-start-2 col-span-2 row-span-2 flex flex-col justify-center px-8 animate-fade-in" style={{ animationDelay: animationDelays[3] }}>
+        <p className="text-lg font-sans mb-4" style={{ color: BLACK }}>
+          I build web experiences focused on clarity, elegance, and impact.
+          <br />
+          <span className="text-base text-gray-700">
+            With every project, I combine strong engineering with playful design. I love collaborating to create products that feel <span style={{ color: ACCENT }}>alive</span>.
+          </span>
+        </p>
+        <div className="flex flex-row gap-6 text-sm">
+          <a
+            href="#resume"
+            className="flex items-center gap-2 font-semibold transition hover:underline"
+            style={{ color: ACCENT }}
+          >
+            <FileUser size={18} /> Resume
+          </a>
+          <a
+            href="#chat"
+            className="flex items-center gap-2 font-semibold transition hover:underline"
+            style={{ color: ACCENT }}
+          >
+            <MessageSquareShare size={18} /> Let's chat
+          </a>
+        </div>
+      </div>
+
+      {/* 3. Skills */}
+      <div className="col-start-2 row-start-3 col-span-2 row-span-1 flex flex-col justify-end pl-8 pb-8 animate-fade-in" style={{ animationDelay: animationDelays[6] }}>
+        <h3 className="text-xl font-semibold uppercase tracking-wider mb-3" style={{ color: BLACK }}>Skills</h3>
+        <div className="flex flex-wrap gap-3">
+          {[
+            "React", "Next.js", "TypeScript", "TailwindCSS", "Framer Motion", "Figma",
+            "Node.js", "Three.js", "GSAP", "UI/UX", "Animation", "Branding"
+          ].map(skill => (
+            <span key={skill} className="px-2 py-1 rounded bg-gray-100 text-xs font-mono" style={{ color: BLACK, border: `1px solid ${ACCENT}` }}>
+              {skill}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* 4. Socials */}
+      <div className="col-start-1 row-start-4 flex flex-col items-end justify-end pr-6 pb-3 gap-2 animate-fade-in" style={{ animationDelay: animationDelays[9] }}>
+        <a href="https://twitter.com/apro" target="_blank" rel="noopener noreferrer" className="text-[13px] tracking-widest font-bold transition hover:underline" style={{ color: ACCENT, writingMode: "vertical-rl", letterSpacing: "0.2em" }}>
+          X (Twitter)
+        </a>
+        <a href="https://github.com/theapro" target="_blank" rel="noopener noreferrer" className="text-[13px] tracking-widest font-bold transition hover:underline" style={{ color: ACCENT, writingMode: "vertical-rl", letterSpacing: "0.2em" }}>
+          GitHub
+        </a>
+      </div>
+
+      {/* 5. Callout / Invite */}
+      <div className="col-start-4 row-start-1 flex flex-col items-end justify-start pt-7 pr-8 animate-fade-in" style={{ animationDelay: animationDelays[12] }}>
+        <span className="text-sm font-medium font-sans" style={{ color: BLACK }}>
+          Open for freelance <span style={{ color: ACCENT }}>*</span>
+        </span>
+        <span className="text-xs font-light font-sans" style={{ color: BLACK }}>
+          Portfolio on request <span style={{ color: ACCENT }}>**</span>
+        </span>
+      </div>
+    </section>
+  </main>
+);
+
+export default AboutPage;
